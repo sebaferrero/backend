@@ -82,7 +82,7 @@ router.get("/:id", function (req, res) {
 });
 
 /* PLACE NEW ORDER */
-router.post("/new", function (req, res) {
+router.post("/new/", function (req, res) {
   let { userId, products } = req.body;
 
   if (userId != null && userId > 0 && !isNaN(userId)) {
@@ -152,7 +152,7 @@ router.post("/new", function (req, res) {
 });
 
 /* FAKE PAYMENT GATEWAY CALL */
-router.post('/payment', function (req, res){
+router.post('/payment/', function (req, res){
     setTimeout(()=>{
         res.status(200).json({success:true});
     },3000)
