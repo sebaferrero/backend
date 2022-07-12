@@ -1,7 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../config/helpers");
-
+const bodyParser = require("body-parser");
+//router.use(bodyParser.raw({ inflate: true, limit: '50mb', type: () => true })); // Para aceptar parametros en raw
+router.use(express.json());
+router.use(express.urlencoded({ extended: true }));
 /* GET ALL ORDERS */
 
 router.get("/", function (req, res) {
@@ -62,7 +65,9 @@ router.get("/:id", function (req, res) {
     ])
     .withFields([
       "o.id",
+      "od.quantity as quantityOrdered",
       "p.title as name",
+      "p.image",
       "p.description",
       "p.price",
       "u.username",
@@ -82,16 +87,17 @@ router.get("/:id", function (req, res) {
 });
 
 /* PLACE NEW ORDER */
-router.post("/new/", function (req, res) {
-  let { userId, products } = req.body;
 
+router.post("/new", function (req, res) {
+  let { userId, products } = req.body;
   if (userId != null && userId > 0 && !isNaN(userId)) {
     db.table("orders")
       .insert({
         user_id: userId,
       })
-      .then((newOrderId) => {
-        if (newOrderId > 0) {
+      .then((result) => {
+        if (result.insertId > 0) {
+          let newId = result.insertId;
           products.forEach(async (p) => {
             let data = await db
               .table("products")
@@ -114,15 +120,15 @@ router.post("/new/", function (req, res) {
             }
             // INSERT ORDER DETAILS W..T THE NEWLY GENERATED ORDER ID
 
-            database
+            db
               .table("orders_details")
               .insert({
-                order_id: newOrderId,
-                produc_id: p.id,
+                order_id: newId,
+                product_id: p.id,
                 quantity: inCart,
               })
-              .then((newId) => {
-                database
+              .then((result) => {
+                db
                   .table("products")
                   .filter({ id: p.id })
                   .update({
@@ -133,30 +139,30 @@ router.post("/new/", function (req, res) {
               })
               .catch((err) => console.log(err));
           });
+          res.status(200).json({
+            message: `Order successfully placed with order id ${newId}`,
+            success: true,
+            order_id: newId,
+            products: products,
+          });
         } else {
           res.json({
             message: "new order failed while ading order details",
             success: false,
           });
         }
-        res.json({
-          message: `Order successfully placed with order id ${newOrderId}`,
-          success: true,
-          order_id: newOrderId,
-          products: products,
-        });
-      });
-  }else{
-    res.json({message: 'New order failed', success: false})
+      })
+      .catch((err) => console.log(err));
+  } else {
+    res.json({ message: "New order failed", success: false });
   }
 });
 
 /* FAKE PAYMENT GATEWAY CALL */
-router.post('/payment/', function (req, res){
-    setTimeout(()=>{
-        res.status(200).json({success:true});
-    },3000)
+router.post("/payment/", function (req, res) {
+  setTimeout(() => {
+    res.status(200).json({ success: true });
+  }, 3000);
 });
-
 
 module.exports = router;

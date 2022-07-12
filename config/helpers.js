@@ -9,5 +9,5 @@ let conn = new Mysqli({
   charset: '', // CHARSET of database, default to utf8 【optional】
   db: 'mega_shop' // the default database name  【optional】
 })
-let db = conn.emit(true, 'test')
+let db = conn.emit(true, 'mega_shop')
 module.exports = db;

@@ -2,6 +2,8 @@ const { Router } = require("express");
 var express = require("express");
 var router = express.Router();
 var db = require("../config/helpers.js");
+const bodyParser = require("body-parser");
+router.use(express.urlencoded({ extended: true }));
 /* GET ALL PRODUCTS. */
 router.get("/", function (req, res) {
   let page =
@@ -46,7 +48,6 @@ router.get("/", function (req, res) {
 /* GET SINGLE PRODUCT */
 router.get("/:prodId", function (req, res) {
   let productId = req.params.prodId;
-  console.log(productId);
 
   db.table("products as p")
     .join([
